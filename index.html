@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer Lifecycle Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="nav">
+    <div class="nav-inner">
+      <div class="brand">
+        <span class="logo"></span>
+        <span class="brand-name">Lifecycle Analytics</span>
+      </div>
+
+      <div class="nav-right">
+        <span class="live"><i class="live-dot"></i><b id="liveCount">214</b> current visitors</span>
+
+        <select id="channelFilter" class="select">
+          <option value="all">All channels</option>
+          <option value="app">App</option>
+          <option value="web">Web</option>
+        </select>
+
+        <select id="productFilter" class="select">
+          <option value="all">All products</option>
+          <option value="lp">Life Protector Plan</option>
+          <option value="lpt">Life Protector Plan Takaful</option>
+          <option value="ms">Mukammal Sehat Plan</option>
+          <option value="mst">Mukammal Sehat Plan Takaful</option>
+          <option value="gs">Goal Saving Plan</option>
+          <option value="gst">Goal Saving Plan Takaful</option>
+        </select>
+
+        <select id="rangeFilter" class="select">
+          <option value="today">Today</option>
+          <option value="yesterday">Yesterday</option>
+          <option value="7d">Last 7 days</option>
+          <option value="30d">Last 30 days</option>
+          <option value="month">This month (Sep 2026)</option>
+          <option value="lastmonth" selected>Last month (Aug 2026)</option>
+          <option value="custom">Custom range…</option>
+        </select>
+
+        <span id="customRange" class="custom-range" hidden>
+          <input type="date" id="dateFrom" class="select date-input" min="2026-06-01" max="2026-09-23" />
+          <span>→</span>
+          <input type="date" id="dateTo" class="select date-input" min="2026-06-01" max="2026-09-23" />
+        </span>
+
+        <button id="themeToggle" class="icon-btn" title="Toggle theme">◐</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div class="page-head">
+      <h1>Customer Lifecycle</h1>
+      <p>From first click to long-term engagement.</p>
+    </div>
+
+    <!-- ===== OVERVIEW: STATS + MAIN CHART ===== -->
+    <section class="card overview">
+      <div class="stats" id="stats"></div>
+      <div class="main-chart">
+        <canvas id="mainChart"></canvas>
+      </div>
+    </section>
+    <!-- ===== JOURNEY PATHS ===== -->
+    <section class="card journey-card">
+      <div class="card-head">
+        <div>
+          <h3>Customer Journey Paths</h3>
+        </div>
+        <span class="muted-sm" id="journeyTotal">12,480 registered</span>
+      </div>
+      <div class="jbar" id="stack"></div>
+      <div class="jcards" id="stackLegend"></div>
+      <div class="jinsight" id="journeyInsight"></div>
+    </section>
+    <!-- ===== FUNNEL + CHANNEL ===== -->
+    <section class="grid grid-2">
+      <div class="card">
+        <div class="card-head">
+          <h3>Lifecycle Funnel</h3>
+          <span class="badge">23.0% overall</span>
+        </div>
+        <div class="col-head">
+          <span>Stage</span>
+          <span class="col-right"><span>Customers</span><span>Rate</span></span>
+        </div>
+        <div id="funnel" class="bar-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Conversion by Channel</h3>
+          <div class="share">
+            <span><i class="sq light"></i>App <b>31%</b></span>
+            <span><i class="sq main"></i>Web <b>69%</b></span>
+          </div>
+        </div>
+        <div class="channel-chart">
+          <canvas id="channelChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== DROP-OFF + FRICTION ===== -->
+    <section class="grid grid-2">
+      <div class="card">
+        <div class="card-head">
+          <h3>Top Drop-off Points</h3>
+          <span class="muted-sm">Customers lost per step</span>
+        </div>
+        <div id="dropoff" class="bar-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Errors &amp; Friction Points</h3>
+          <span class="muted-sm">Customers affected</span>
+        </div>
+        <div id="friction" class="bar-list"></div>
+      </div>
+    </section>
+
+    <!-- ===== TABLE + RETENTION ===== -->
+    <section class="grid grid-2">
+      <div class="card">
+        <div class="card-head"><h3>Conversion Breakdown</h3></div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Stage</th>
+                <th class="num">App</th>
+                <th class="num">Web</th>
+                <th class="num">Total</th>
+                <th class="num">Drop-off</th>
+              </tr>
+            </thead>
+            <tbody id="breakdown"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Retention &amp; Engagement</h3>
+          <span class="muted-sm">of policyholders</span>
+        </div>
+        <div id="retention" class="retention"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== CUSTOMER DETAILS DRAWER ===== -->
+  <div class="drawer-overlay" id="overlay"></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-head">
+      <div>
+        <h3 id="drawerTitle"></h3>
+        <p id="drawerSub" class="muted-sm"></p>
+      </div>
+      <button id="drawerClose" class="icon-btn" title="Close">✕</button>
+    </div>
+
+    <div class="drawer-tools">
+      <input id="drawerSearch" class="search" placeholder="Search name, ID, phone, city…" />
+      <button id="drawerCsv" class="btn">Export CSV</button>
+    </div>
+
+    <div class="drawer-body">
+      <table class="table drawer-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>City</th>
+            <th>Channel</th>
+            <th>Product</th>
+            <th>Registered</th>
+            <th>Reached</th>
+            <th>Issue</th>
+            <th class="num">Days to policy</th>
+          </tr>
+        </thead>
+        <tbody id="drawerRows"></tbody>
+      </table>
+    </div>
+
+    <div class="drawer-foot">
+      <span id="drawerCount" class="muted-sm"></span>
+      <div class="pager">
+        <button id="prevPage" class="btn">‹ Prev</button>
+        <span id="pageInfo" class="muted-sm"></span>
+        <button id="nextPage" class="btn">Next ›</button>
+      </div>
+    </div>
+  </aside>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
