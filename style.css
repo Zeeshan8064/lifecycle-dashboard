@@ -413,84 +413,24 @@ body.no-scroll { overflow: hidden; }
 }
 .pager { display: flex; align-items: center; gap: 10px; }
 
-/* ===== JOURNEY PATHS (new) ===== */
-.journey-card { margin-top: 16px; }
-.journey-card .card-head { align-items: flex-start; }
-.journey-card .card-head .muted-sm { margin-top: 2px; }
+/* ===== TABLE HIGHLIGHT ===== */
+.table tr.worst td { background: var(--red-soft); }
 
-.jbar {
+/* ===== MAIN CHART HEADER ===== */
+.chart-head {
   display: flex;
-  height: 46px;
-  gap: 4px;
-  border-radius: 10px;
-  overflow: hidden;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px 20px 0;
 }
-.jseg {
-  display: flex;
-  align-items: center;
-  padding-left: 14px;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  cursor: pointer;
-  transition: width 0.5s ease, filter 0.15s;
-}
-.jseg:hover { filter: brightness(1.12); }
-
-.jcards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 16px;
-}
-.jcard {
-  border: 1px solid var(--border);
-  border-top: 3px solid var(--c);
-  border-radius: 10px;
-  padding: 14px 16px;
-  cursor: pointer;
-  transition: background 0.15s, transform 0.15s;
-}
-.jcard:hover { background: var(--hover); transform: translateY(-1px); }
-.jcard-top { display: flex; align-items: center; gap: 8px; }
-.jdot { width: 9px; height: 9px; border-radius: 3px; background: var(--c); display: inline-block; }
-.jname { font-size: 13px; font-weight: 600; color: var(--muted); }
-.jnum { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin: 8px 0 4px; }
-.jmeta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
-.jpct {
-  font-weight: 700;
-  color: var(--c);
-  background: var(--accent-soft);
-  padding: 2px 8px;
-  border-radius: 999px;
-}
-.jlink { margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--accent); opacity: 0; transition: opacity 0.15s; }
-.jcard:hover .jlink { opacity: 1; }
-
-.jinsight {
-  margin-top: 14px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  background: var(--hover);
-  font-size: 13px;
-}
-.jinsight:empty { display: none; }
-.jinsight a { color: var(--accent); font-weight: 600; cursor: pointer; }
-.jinsight a:hover { text-decoration: underline; }
-.jwarn {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--red);
-  background: var(--red-soft);
-  padding: 2px 8px;
-  border-radius: 999px;
-  margin-right: 6px;
-}
-
-@media (max-width: 700px) {
-  .jcards { grid-template-columns: 1fr; }
-}
+.chart-title { font-size: 15px; font-weight: 700; }
+.chart-title span { font-weight: 500; color: var(--muted); }
+.chart-sub { font-size: 12px; color: var(--muted); margin-top: 2px; max-width: 520px; }
+.chart-legend { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.chart-legend span { display: flex; align-items: center; gap: 8px; }
+.lg-solid, .lg-dash { display: inline-block; width: 22px; height: 0; }
+.lg-solid { border-top: 2px solid var(--accent); }
+.lg-dash { border-top: 2px dashed #9ca3af; }
+.main-chart { height: 300px; padding-top: 10px; }

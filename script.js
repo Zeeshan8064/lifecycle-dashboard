@@ -18,6 +18,8 @@ let currentMetric = "registered";
 let mainChart = null;
 let channelChart = null;
 
+const REF_IDX = RETENTION_ITEMS.findIndex((r) => r.name === "Referrals");
+
 // ===== FILTERS =====
 function getChannel() { return $("channelFilter").value; }   // all | app | web
 function getProduct() { return $("productFilter").value; }   // all | lp | ...
@@ -75,19 +77,19 @@ function collect(from, to) {
   const len = to - from + 1;
   const list = pickCustomers(from, to, getChannel());
   const reg = Array(len).fill(0), pol = Array(len).fill(0);
-  const ttp = Array(len).fill(0), rep = Array(len).fill(0);
+  const ttp = Array(len).fill(0), ref = Array(len).fill(0);
   list.forEach((c) => {
     const k = c.d - from;
     reg[k]++;
-    if (c.s === 6) { pol[k]++; ttp[k] += c.ttp; if (c.rep) rep[k]++; }
+    if (c.s === 6) { pol[k]++; ttp[k] += c.ttp; if ((c.ret >> REF_IDX) & 1) ref[k]++; }
   });
   const sum = (a) => a.reduce((x, y) => x + y, 0);
   const R = sum(reg), P = sum(pol);
   return {
-    reg, pol, ttp, rep, R, P,
+    reg, pol, ttp, ref, R, P,
     conv: R ? (P / R) * 100 : 0,
     avgT: P ? sum(ttp) / P : 0,
-    repP: P ? (sum(rep) / P) * 100 : 0,
+    refP: P ? (sum(ref) / P) * 100 : 0,
   };
 }
 
@@ -116,7 +118,7 @@ function buildMetrics(range) {
 
   const M = {
     registered: {
-      label: "Registered customers", format: "num", decimals: 0, unit: "%", count: true,
+      label: "Total signups", format: "num", decimals: 0, unit: "%", count: true,
       total: cur.R, prevTotal: prev && prev.R,
       delta: prev ? pc(cur.R, prev.R) : null,
       current: cur.reg, previous: prev && prev.reg,
@@ -141,12 +143,12 @@ function buildMetrics(range) {
       current: ratio(cur.ttp, cur.pol, 1, 1),
       previous: prev && ratio(prev.ttp, prev.pol, 1, 1),
     },
-    repeat: {
-      label: "Repeat engagement", format: "pct", decimals: 0, unit: "pp",
-      total: +cur.repP.toFixed(0), prevTotal: prev && +prev.repP.toFixed(0),
-      delta: prev ? cur.repP - prev.repP : null,
-      current: ratio(cur.rep, cur.pol, 100, 1),
-      previous: prev && ratio(prev.rep, prev.pol, 100, 1),
+    referrals: {
+      label: "Referrals", format: "pct", decimals: 0, unit: "pp",
+      total: +cur.refP.toFixed(0), prevTotal: prev && +prev.refP.toFixed(0),
+      delta: prev ? cur.refP - prev.refP : null,
+      current: ratio(cur.ref, cur.pol, 100, 1),
+      previous: prev && ratio(prev.ref, prev.pol, 100, 1),
     },
   };
 
@@ -197,7 +199,8 @@ function renderStats() {
       }
       const link =
         key === "registered" ? `<span class="stat-link" data-act="stage:0">View customers →</span>` :
-        key === "policyholders" ? `<span class="stat-link" data-act="stage:6">View customers →</span>` : "";
+        key === "policyholders" ? `<span class="stat-link" data-act="stage:6">View customers →</span>` :
+        key === "referrals" ? `<span class="stat-link" data-act="ret:${REF_IDX}">View customers →</span>` : "";
       return `
         <button class="stat ${key === currentMetric ? "active" : ""}" data-metric="${key}">
           <span class="stat-label">${m.label}</span>
@@ -230,6 +233,26 @@ function drawMainChart() {
   grad.addColorStop(1, "rgba(88, 80, 236, 0)");
 
   if (mainChart) mainChart.destroy();
+
+  const { from, len } = CTX.range;
+  const daily = len > 1;
+  const DESC = {
+    registered: "New customers who signed up",
+    policyholders: "Policies issued",
+    conversion: "Share of signups who bought a policy",
+    time: "Average days from registration to policy",
+    referrals: "Share of policyholders who referred someone",
+  };
+  const prevRange = { from: from - len, to: from - 1 };
+  $("chartHead").innerHTML = `
+    <div>
+      <div class="chart-title">${m.label} <span>· ${daily ? "per day" : "per hour"}</span></div>
+      <div class="chart-sub">${DESC[currentMetric]}${daily ? ", for each day in the selected range" : ", by hour of the day"}. Click a card above to change the metric.</div>
+    </div>
+    <div class="chart-legend">
+      <span><i class="lg-solid"></i>This period · ${rangeText(CTX.range)}</span>
+      ${m.previous ? `<span><i class="lg-dash"></i>Previous period · ${rangeText(prevRange)}</span>` : ""}
+    </div>`;
 
   const datasets = [
     {
@@ -273,7 +296,13 @@ function drawMainChart() {
           padding: 10,
           cornerRadius: 8,
           titleFont: { weight: "600" },
-          callbacks: { label: (c) => `${c.dataset.label}: ${formatVal(m, c.parsed.y)}` },
+          callbacks: {
+            label: (c) => {
+              const isPrev = c.dataset.label === "Previous period";
+              const when = isPrev ? ` (${fmtDay(daily ? from - len + c.dataIndex : from - 1)})` : "";
+              return `${c.dataset.label}${when}: ${formatVal(m, c.parsed.y)}`;
+            },
+          },
         },
       },
       scales: {
@@ -391,30 +420,6 @@ function drawChannelChart() {
   });
 }
 
-// ===== DROP-OFF =====
-function renderDropoff() {
-  const cnt = CTX.cnt;
-  const rows = [];
-  for (let j = 1; j < 7; j++) {
-    const n = cnt[j - 1] - cnt[j];
-    rows.push({ j, n, pct: cnt[j - 1] ? (n / cnt[j - 1]) * 100 : 0 });
-  }
-  rows.sort((a, b) => b.pct - a.pct);
-  const top = rows.slice(0, 5);
-  const max = Math.max(...top.map((r) => r.pct), 1);
-
-  $("dropoff").innerHTML = top
-    .map(
-      (r) => `
-    <div class="bar-row" data-act="drop:${r.j}">
-      <div class="bar-fill red" style="width:${(r.pct / max) * 100}%"></div>
-      <span class="bar-label">${STAGES[r.j - 1]} → ${STAGES[r.j]}</span>
-      <span class="bar-values"><span class="n">${fmt(r.n)}</span><span class="p">${r.pct.toFixed(1)}%</span></span>
-    </div>`
-    )
-    .join("");
-}
-
 // ===== FRICTION =====
 function renderFriction() {
   const counts = Array(ERRORS.length).fill(0);
@@ -440,72 +445,25 @@ function renderBreakdown() {
   const { cnt, cntApp, cntWeb, ch } = CTX;
   const dim = (c) => (ch !== "all" && ch !== c ? 'style="opacity:.35"' : "");
 
+  const pcts = STAGES.map((_, j) => (j && cnt[j - 1] ? (1 - cnt[j] / cnt[j - 1]) * 100 : 0));
+  const worst = pcts.indexOf(Math.max(...pcts));
+
   $("breakdown").innerHTML = STAGES.map((name, j) => {
-    const drop = j === 0 || !cnt[j - 1] ? "–" : ((1 - cnt[j] / cnt[j - 1]) * 100).toFixed(1) + "%";
+    const has = j > 0 && cnt[j - 1];
+    const lost = has ? fmt(cnt[j - 1] - cnt[j]) : "–";
+    const chDrop = (arr) => (has && arr[j - 1] ? ((1 - arr[j] / arr[j - 1]) * 100).toFixed(1) + "%" : "–");
+    const act = has ? ` data-act="drop:${j}"` : "";
     return `
-    <tr data-act="stage:${j}">
+    <tr data-act="stage:${j}"${j === worst ? ' class="worst"' : ""}>
       <td>${name}</td>
       <td class="num" ${dim("app")} data-act="stage:${j}:app">${fmt(cntApp[j])}</td>
       <td class="num" ${dim("web")} data-act="stage:${j}:web">${fmt(cntWeb[j])}</td>
       <td class="num"><b>${fmt(cnt[j])}</b></td>
-      <td class="num ${drop === "–" ? "" : "drop"}">${drop}</td>
+      <td class="num"${act}>${lost}</td>
+      <td class="num ${has ? "drop" : ""}" ${dim("app")}${has ? ` data-act="drop:${j}:app"` : ""}>${chDrop(cntApp)}</td>
+      <td class="num ${has ? "drop" : ""}" ${dim("web")}${has ? ` data-act="drop:${j}:web"` : ""}>${chDrop(cntWeb)}</td>
     </tr>`;
   }).join("");
-}
-
-// ===== RETENTION =====
-function renderRetention() {
-  const pols = CTX.list.filter((c) => c.s === 6);
-  $("retention").innerHTML = RETENTION_ITEMS.map((r, k) => {
-    const n = pols.filter((c) => (c.ret >> k) & 1).length;
-    const pct = pols.length ? Math.round((n / pols.length) * 100) : 0;
-    return `
-    <div class="ret" data-act="ret:${k}">
-      <div>
-        <div class="ret-name">${r.name}</div>
-        <div class="ret-val">${fmt(n)}</div>
-      </div>
-      <span class="ret-pct">${pct}%</span>
-    </div>`;
-  }).join("");
-}
-
-// ===== JOURNEY =====
-function renderJourney() {
-  const cnt = CTX.cnt;
-  const total = cnt[0];
-  const vals = [cnt[6], cnt[3] - cnt[6], cnt[0] - cnt[3]]; // policy / dropped before payment / explored
-   const notes = [
-    "Purchased a policy",
-    "Got a quote, did not buy",
-    "Left before getting a quote",
-  ];
-  const pct = (v) => (total ? (v / total) * 100 : 0);
-
-  $("journeyTotal").textContent = fmt(total) + " registered";
-
-  // upar wali bar
-  $("stack").innerHTML = JOURNEY_META.map((j, k) => {
-    const w = pct(vals[k]);
-    return `<div class="jseg" data-act="journey:${k}" title="${j.label}: ${fmt(vals[k])}" style="width:${w}%; background:${j.color}">${w >= 7 ? Math.round(w) + "%" : ""}</div>`;
-  }).join("");
-
-  // neeche 3 cards
-  $("stackLegend").innerHTML = JOURNEY_META.map(
-    (j, k) => `
-    <div class="jcard" data-act="journey:${k}" style="--c:${j.color}">
-      <div class="jcard-top"><i class="jdot"></i><span class="jname">${j.label}</span></div>
-      <div class="jnum">${fmt(vals[k])}</div>
-      <div class="jmeta"><span class="jpct">${pct(vals[k]).toFixed(1)}%</span><span>${notes[k]}</span></div>
-      <div class="jlink">View customers →</div>
-    </div>`
-  ).join("");
-
-  // sab se bara leak (policy wale path ko chhod kar)
-  const worst = vals[1] >= vals[2] ? 1 : 2;
-  $("journeyInsight").innerHTML = total
-        ? `<span class="jwarn">Biggest leak</span> <b>${JOURNEY_META[worst].label}</b>: ${fmt(vals[worst])} customers (${pct(vals[worst]).toFixed(1)}%). <a data-act="journey:${worst}">View customers →</a>`
-    : "";
 }
 
 // ===== SAB KUCH DOBARA DRAW =====
@@ -516,11 +474,8 @@ function renderAll() {
   renderFunnel();
   updateShare();
   drawChannelChart();
-  renderDropoff();
   renderFriction();
   renderBreakdown();
-  renderRetention();
-  renderJourney();
 }
 
 // =====================================================
@@ -538,7 +493,7 @@ function openAct(act) {
   if (kind === "stage") {
     const j = +a;
     list = pickCustomers(from, to, ch).filter((c) => c.s >= j);
-    title = j === 0 ? "Registered customers" : j === 6 ? "Policy issued customers" : `Reached: ${STAGES[j]}`;
+    title = j === 0 ? "Total signups" : j === 6 ? "Policy issued customers" : `Reached: ${STAGES[j]}`;
     sub = j === 0 ? "Everyone who registered" : `Customers who reached "${STAGES[j]}" or beyond`;
   } else if (kind === "drop") {
     const j = +a;
@@ -555,12 +510,6 @@ function openAct(act) {
     list = pickCustomers(from, to, ch).filter((c) => c.s === 6 && (c.ret >> k) & 1);
     title = RETENTION_ITEMS[k].name;
     sub = "Policyholders";
-  } else if (kind === "journey") {
-    const k = +a;
-    const f = [(c) => c.s === 6, (c) => c.s >= 3 && c.s <= 5, (c) => c.s <= 2][k];
-    list = pickCustomers(from, to, ch).filter(f);
-    title = JOURNEY_META[k].label;
-    sub = "Customer journey path";
   }
 
   const chText = ch === "all" ? "All channels" : ch === "app" ? "App" : "Web";

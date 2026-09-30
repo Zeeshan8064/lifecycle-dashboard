@@ -54,20 +54,16 @@ const ERRORS = [
 ];
 
 const RETENTION_ITEMS = [
-  { name: "Active This Month",  p: 0.805 },
-  { name: "Repeat Visits",      p: 0.537 },
-  { name: "Product Revisits",   p: 0.341 },
-  { name: "Policy Servicing",   p: 0.251 },
-  { name: "Claims Interaction", p: 0.143 },
-  { name: "Rewards Engagement", p: 0.237 },
+  { name: "Active This Month",  p: 0.805, hidden: true },
+  { name: "Repeat Visits",      p: 0.537, hidden: true },
+  { name: "Product Revisits",   p: 0.341, hidden: true },
+  // hidden items stay so the seeded random stream (and all other numbers) don't change
+  { name: "Policy Servicing",   p: 0.251, hidden: true },
+  { name: "Claims Interaction", p: 0.143, hidden: true },
+  { name: "Rewards Engagement", p: 0.237, hidden: true },
   { name: "Referrals",          p: 0.111 },
 ];
 
-const JOURNEY_META = [
-  { label: "Policy Issued",            color: "#5850ec" },
-  { label: "Dropped Before Payment",   color: "#f59e0b" },
-  { label: "Explored But No Purchase", color: "#9ca3af" },
-];
 
 // =====================================================
 // PRODUCTS

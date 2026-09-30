@@ -69,21 +69,10 @@
     <!-- ===== OVERVIEW: STATS + MAIN CHART ===== -->
     <section class="card overview">
       <div class="stats" id="stats"></div>
+      <div class="chart-head" id="chartHead"></div>
       <div class="main-chart">
         <canvas id="mainChart"></canvas>
       </div>
-    </section>
-    <!-- ===== JOURNEY PATHS ===== -->
-    <section class="card journey-card">
-      <div class="card-head">
-        <div>
-          <h3>Customer Journey Paths</h3>
-        </div>
-        <span class="muted-sm" id="journeyTotal">12,480 registered</span>
-      </div>
-      <div class="jbar" id="stack"></div>
-      <div class="jcards" id="stackLegend"></div>
-      <div class="jinsight" id="journeyInsight"></div>
     </section>
     <!-- ===== FUNNEL + CHANNEL ===== -->
     <section class="grid grid-2">
@@ -113,52 +102,37 @@
       </div>
     </section>
 
-    <!-- ===== DROP-OFF + FRICTION ===== -->
-    <section class="grid grid-2">
-      <div class="card">
-        <div class="card-head">
-          <h3>Top Drop-off Points</h3>
-          <span class="muted-sm">Customers lost per step</span>
-        </div>
-        <div id="dropoff" class="bar-list"></div>
+    <!-- ===== CONVERSION BREAKDOWN (incl. drop-off) ===== -->
+    <section class="card" style="margin-top:16px">
+      <div class="card-head">
+        <h3>Conversion Breakdown</h3>
+        <span class="muted-sm">Customers lost at each step</span>
       </div>
-
-      <div class="card">
-        <div class="card-head">
-          <h3>Errors &amp; Friction Points</h3>
-          <span class="muted-sm">Customers affected</span>
-        </div>
-        <div id="friction" class="bar-list"></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Stage</th>
+              <th class="num">App</th>
+              <th class="num">Web</th>
+              <th class="num">Total</th>
+              <th class="num">Lost</th>
+              <th class="num">Drop-off App</th>
+              <th class="num">Drop-off Web</th>
+            </tr>
+          </thead>
+          <tbody id="breakdown"></tbody>
+        </table>
       </div>
     </section>
 
-    <!-- ===== TABLE + RETENTION ===== -->
-    <section class="grid grid-2">
-      <div class="card">
-        <div class="card-head"><h3>Conversion Breakdown</h3></div>
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Stage</th>
-                <th class="num">App</th>
-                <th class="num">Web</th>
-                <th class="num">Total</th>
-                <th class="num">Drop-off</th>
-              </tr>
-            </thead>
-            <tbody id="breakdown"></tbody>
-          </table>
-        </div>
+    <!-- ===== FRICTION ===== -->
+    <section class="card" style="margin-top:16px">
+      <div class="card-head">
+        <h3>Errors &amp; Friction Points</h3>
+        <span class="muted-sm">Customers affected</span>
       </div>
-
-      <div class="card">
-        <div class="card-head">
-          <h3>Retention &amp; Engagement</h3>
-          <span class="muted-sm">of policyholders</span>
-        </div>
-        <div id="retention" class="retention"></div>
-      </div>
+      <div id="friction" class="bar-list"></div>
     </section>
   </main>
 
