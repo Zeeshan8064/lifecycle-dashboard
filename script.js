@@ -331,24 +331,6 @@ function drawMainChart() {
   });
 }
 
-// ===== FUNNEL =====
-function renderFunnel() {
-  const cnt = CTX.cnt;
-  const max = cnt[0] || 1;
-  $("funnel").innerHTML = STAGES.map((name, j) => {
-    const rate = j === 0 ? "100%" : cnt[j - 1] ? ((cnt[j] / cnt[j - 1]) * 100).toFixed(1) + "%" : "0%";
-    return `
-    <div class="bar-row" data-act="stage:${j}">
-      <div class="bar-fill" style="width:${(cnt[j] / max) * 100}%"></div>
-      <span class="bar-label">${name}</span>
-      <span class="bar-values"><span class="n">${fmt(cnt[j])}</span><span class="p">${rate}</span></span>
-    </div>`;
-  }).join("");
-
-  const overall = cnt[0] ? ((cnt[6] / cnt[0]) * 100).toFixed(1) : "0.0";
-  $("funnel").closest(".card").querySelector(".badge").textContent = overall + "% overall";
-}
-
 // ===== CHANNEL BAR CHART =====
 const CH_STAGES = [0, 2, 3, 4, 5, 6];
 
@@ -447,9 +429,11 @@ function renderBreakdown() {
 
   const pcts = STAGES.map((_, j) => (j && cnt[j - 1] ? (1 - cnt[j] / cnt[j - 1]) * 100 : 0));
   const worst = pcts.indexOf(Math.max(...pcts));
+  $("overallBadge").textContent = (cnt[0] ? ((cnt[6] / cnt[0]) * 100).toFixed(1) : "0.0") + "% overall";
 
   $("breakdown").innerHTML = STAGES.map((name, j) => {
     const has = j > 0 && cnt[j - 1];
+    const rate = j === 0 ? "100%" : has ? ((cnt[j] / cnt[j - 1]) * 100).toFixed(1) + "%" : "0%";
     const lost = has ? fmt(cnt[j - 1] - cnt[j]) : "–";
     const chDrop = (arr) => (has && arr[j - 1] ? ((1 - arr[j] / arr[j - 1]) * 100).toFixed(1) + "%" : "–");
     const act = has ? ` data-act="drop:${j}"` : "";
@@ -459,6 +443,7 @@ function renderBreakdown() {
       <td class="num" ${dim("app")} data-act="stage:${j}:app">${fmt(cntApp[j])}</td>
       <td class="num" ${dim("web")} data-act="stage:${j}:web">${fmt(cntWeb[j])}</td>
       <td class="num"><b>${fmt(cnt[j])}</b></td>
+      <td class="num">${rate}</td>
       <td class="num"${act}>${lost}</td>
       <td class="num ${has ? "drop" : ""}" ${dim("app")}${has ? ` data-act="drop:${j}:app"` : ""}>${chDrop(cntApp)}</td>
       <td class="num ${has ? "drop" : ""}" ${dim("web")}${has ? ` data-act="drop:${j}:web"` : ""}>${chDrop(cntWeb)}</td>
@@ -471,7 +456,6 @@ function renderAll() {
   compute();
   renderStats();
   drawMainChart();
-  renderFunnel();
   updateShare();
   drawChannelChart();
   renderFriction();

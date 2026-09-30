@@ -74,20 +74,33 @@
         <canvas id="mainChart"></canvas>
       </div>
     </section>
-    <!-- ===== FUNNEL + CHANNEL ===== -->
-    <section class="grid grid-2">
-      <div class="card">
-        <div class="card-head">
-          <h3>Lifecycle Funnel</h3>
-          <span class="badge">23.0% overall</span>
-        </div>
-        <div class="col-head">
-          <span>Stage</span>
-          <span class="col-right"><span>Customers</span><span>Rate</span></span>
-        </div>
-        <div id="funnel" class="bar-list"></div>
+    <!-- ===== CONVERSION BREAKDOWN (incl. drop-off) ===== -->
+    <section class="card" style="margin-top:16px">
+      <div class="card-head">
+        <h3>Lifecycle Funnel &amp; Conversion Breakdown</h3>
+        <span class="badge" id="overallBadge">23.0% overall</span>
       </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Stage</th>
+              <th class="num">App</th>
+              <th class="num">Web</th>
+              <th class="num">Total</th>
+              <th class="num">Step rate</th>
+              <th class="num">Lost</th>
+              <th class="num">Drop-off App</th>
+              <th class="num">Drop-off Web</th>
+            </tr>
+          </thead>
+          <tbody id="breakdown"></tbody>
+        </table>
+      </div>
+    </section>
 
+    <!-- ===== CHANNEL + FRICTION ===== -->
+    <section class="grid grid-2">
       <div class="card">
         <div class="card-head">
           <h3>Conversion by Channel</h3>
@@ -100,39 +113,14 @@
           <canvas id="channelChart"></canvas>
         </div>
       </div>
-    </section>
 
-    <!-- ===== CONVERSION BREAKDOWN (incl. drop-off) ===== -->
-    <section class="card" style="margin-top:16px">
-      <div class="card-head">
-        <h3>Conversion Breakdown</h3>
-        <span class="muted-sm">Customers lost at each step</span>
+      <div class="card">
+        <div class="card-head">
+          <h3>Errors &amp; Friction Points</h3>
+          <span class="muted-sm">Customers affected</span>
+        </div>
+        <div id="friction" class="bar-list"></div>
       </div>
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Stage</th>
-              <th class="num">App</th>
-              <th class="num">Web</th>
-              <th class="num">Total</th>
-              <th class="num">Lost</th>
-              <th class="num">Drop-off App</th>
-              <th class="num">Drop-off Web</th>
-            </tr>
-          </thead>
-          <tbody id="breakdown"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ===== FRICTION ===== -->
-    <section class="card" style="margin-top:16px">
-      <div class="card-head">
-        <h3>Errors &amp; Friction Points</h3>
-        <span class="muted-sm">Customers affected</span>
-      </div>
-      <div id="friction" class="bar-list"></div>
     </section>
   </main>
 
